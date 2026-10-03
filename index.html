@@ -3,189 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#ffffff">
   <title>WriskNuk Search</title>
-
-  <style>
-    :root {
-      --text: #202124;
-      --muted: #70757a;
-      --border: #dfe1e5;
-      --button: #f8f9fa;
-      --button-hover: #f1f3f4;
-      --accent: #ea4335;
-      --shadow: 0 1px 6px rgba(32, 33, 36, 0.15);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      font-family: Arial, sans-serif;
-      color: var(--text);
-      background: #fff;
-    }
-
-    .container {
-      width: min(100%, 600px);
-      text-align: center;
-      transform: translateY(-5vh);
-    }
-
-    .logo {
-      margin-bottom: 30px;
-      font-size: clamp(32px, 8vw, 48px);
-      font-weight: 700;
-      letter-spacing: -1.5px;
-      user-select: none;
-    }
-
-    .logo span {
-      color: var(--accent);
-    }
-
-    form {
-      width: 100%;
-    }
-
-    .search-box {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      min-height: 48px;
-      padding: 5px 18px;
-      border: 1px solid var(--border);
-      border-radius: 28px;
-      background: #fff;
-      box-shadow: var(--shadow);
-      transition: box-shadow 0.2s ease, border-color 0.2s ease;
-    }
-
-    .search-box:focus-within {
-      border-color: transparent;
-      box-shadow: 0 1px 8px rgba(32, 33, 36, 0.28);
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 8px 0;
-      border: 0;
-      outline: 0;
-      color: var(--text);
-      background: transparent;
-      font-size: 16px;
-    }
-
-    .search-input::placeholder {
-      color: var(--muted);
-    }
-
-    .buttons-row {
-      display: flex;
-      justify-content: center;
-      margin-top: 24px;
-    }
-
-    .btn {
-      min-width: 140px;
-      height: 38px;
-      padding: 0 18px;
-      border: 1px solid var(--button);
-      border-radius: 4px;
-      color: #3c4043;
-      background: var(--button);
-      font: 14px Arial, sans-serif;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
-
-    .btn:hover {
-      border-color: #dadce0;
-      background: var(--button-hover);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    }
-
-    .btn:focus-visible {
-      outline: 3px solid rgba(66, 133, 244, 0.35);
-      outline-offset: 2px;
-    }
-
-    .footer {
-      position: fixed;
-      right: 0;
-      bottom: 16px;
-      left: 0;
-      padding: 0 16px;
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.5;
-      text-align: center;
-    }
-
-    max-width: 480px {
-      body {
-        padding: 18px;
-      }
-
-      .container {
-        transform: translateY(-8vh);
-      }
-
-      .logo {
-        margin-bottom: 24px;
-      }
-
-      .footer {
-        bottom: 12px;
-      }
-    }
-
-    prefers-reduced-motion: reduce {
-      *,
-      *::before,
-      *::after {
-        transition: none !important;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
   <main class="container">
-    <div class="logo" aria-label="WriskNuk Search">
-      WriskNuk <span>Search</span>
+    <div class="logo" id="logo">WriskNuk <span id="logoSpan">Search</span></div>
+    <div class="engine-switcher">
+      <button type="button" class="engine-btn active" data-engine="google">Google</button>
+      <button type="button" class="engine-btn" data-engine="yandex">Яндекс</button>
     </div>
-
-    <form action="https://www.google.com/search" method="get">
+    <form id="searchForm">
       <div class="search-box">
-        <input
-          class="search-input"
-          type="search"
-          name="q"
-          placeholder="Введите поисковый запрос"
-          aria-label="Поисковый запрос"
-          autocomplete="off"
-          autofocus
-          required
-        >
-      </div>
-
-      <div class="buttons-row">
-        <button class="btn" type="submit">Поиск в сети</button>
+        <input id="searchInput" class="search-input" type="search" placeholder="Введите запрос и нажмите Enter" autocomplete="off" autofocus required>
       </div>
     </form>
+    <div class="bookmarks-section">
+      <div class="bookmarks-header">
+        <div class="bookmarks-title">Быстрый доступ</div>
+        <button type="button" class="manage-btn" id="toggleManageBtn">Изменить</button>
+      </div>
+      <div class="bookmarks-grid" id="bookmarksGrid"></div>
+    </div>
   </main>
-
-  <footer class="footer">
-    © WriskNuk Search. Поиск выполняется через Google.
-  </footer>
+  <footer class="footer" id="footerText">© WriskNuk Search. Поиск через Google.</footer>
+  <script src="script.js"></script>
 </body>
 </html>
