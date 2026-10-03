@@ -13,13 +13,12 @@
       --border: #dfe1e5;
       --button: #f8f9fa;
       --button-hover: #f1f3f4;
-      --accent: #ea4335;
+      --accent: #ea4335; /* Красный для Google */
+      --yandex-accent: #ff0000; /* Красный для Яндекса */
       --shadow: 0 1px 6px rgba(32, 33, 36, 0.15);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -41,27 +40,42 @@
     }
 
     .logo {
-      margin-bottom: 30px;
+      margin-bottom: 20px;
       font-size: clamp(32px, 8vw, 48px);
       font-weight: 700;
       letter-spacing: -1.5px;
       user-select: none;
     }
 
-    .logo span {
-      color: var(--accent);
+    .logo span { color: var(--accent); }
+
+    /* Блок выбора поисковика */
+    .search-controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
     }
 
-    form {
-      width: 100%;
+    .search-select {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: white;
+      font-size: 14px;
+      cursor: pointer;
+      min-width: 150px;
     }
+
+    form { width: 100%; }
 
     .search-box {
       display: flex;
       align-items: center;
       width: 100%;
       min-height: 48px;
-      padding: 5px 18px;
+      padding: 5px 10px 5px 18px;
       border: 1px solid var(--border);
       border-radius: 28px;
       background: #fff;
@@ -84,87 +98,154 @@
       font-size: 16px;
     }
 
-    .search-input::placeholder {
-      color: var(--muted);
-    }
+    .search-input::placeholder { color: var(--muted); }
 
-    .buttons-row {
-      display: flex;
-      justify-content: center;
-      margin-top: 24px;
-    }
-
-    .btn {
-      min-width: 140px;
+    .search-arrow-btn {
+      width: 38px;
       height: 38px;
-      padding: 0 18px;
-      border: 1px solid var(--button);
-      border-radius: 4px;
-      color: #3c4043;
-      background: var(--button);
-      font: 14px Arial, sans-serif;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--accent);
+      font-size: 20px;
+      font-weight: 700;
       cursor: pointer;
-      transition: 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+      margin-left: 4px;
     }
 
-    .btn:hover {
-      border-color: #dadce0;
-      background: var(--button-hover);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    .search-arrow-btn:hover { background: var(--button-hover); }
+    
+    /* Адаптация цвета кнопки под Яндекс */
+    body[data-engine="yandex"] .search-arrow-btn { color: #005fb9; }
+    body[data-engine="yandex"] .logo span { color: #005fb9; }
+
+    /* Блок закладок */
+    .bookmarks-container {
+      margin-top: 32px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 16px;
+      justify-content: center;
+      width: 100%;
     }
 
-    .btn:focus-visible {
-      outline: 3px solid rgba(66, 133, 244, 0.35);
-      outline-offset: 2px;
+    .bookmark-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: var(--text);
+      padding: 10px;
+      border-radius: 8px;
+      transition: background 0.2s ease;
     }
+
+    .bookmark-card:hover { background: var(--button-hover); }
+
+    .bookmark-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--button);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .bookmark-title {
+      font-size: 12px;
+      max-width: 80px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bookmark-delete {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 18px;
+      height: 18px;
+      background: #ff4d4d;
+      color: white;
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 0;
+    }
+
+    .bookmark-card:hover .bookmark-delete { display: flex; }
+
+    .add-bookmark-btn { cursor: pointer; }
+    .add-bookmark-btn .bookmark-icon { background: #fff; border: 1px dashed var(--muted); color: var(--accent); }
+
+    /* Модальное окно */
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal {
+      background: #fff; padding: 24px; border-radius: 8px; box-shadow: var(--shadow);
+      width: min(100%, 340px); text-align: left;
+    }
+    .modal-title { margin-top: 0; margin-bottom: 16px; font-size: 18px; font-weight: 700; }
+    .modal-field { margin-bottom: 12px; }
+    .modal-field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .modal-input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; outline: 0; }
+    .modal-input:focus { border-color: var(--accent); }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+    .modal-btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; cursor: pointer; background: #fff; }
+    .modal-btn.confirm { background: var(--accent); color: #fff; border-color: var(--accent); }
+    
+    body[data-engine="yandex"] .modal-btn.confirm { background: #005fb9; border-color: #005fb9; }
 
     .footer {
-      position: fixed;
-      right: 0;
-      bottom: 16px;
-      left: 0;
-      padding: 0 16px;
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.5;
-      text-align: center;
+      position: fixed; right: 0; bottom: 16px; left: 0;
+      padding: 0 16px; color: var(--muted); font-size: 11px; line-height: 1.5; text-align: center;
     }
 
-    max-width: 480px {
-      body {
-        padding: 18px;
-      }
-
-      .container {
-        transform: translateY(-8vh);
-      }
-
-      .logo {
-        margin-bottom: 24px;
-      }
-
-      .footer {
-        bottom: 12px;
-      }
-    }
-
-    prefers-reduced-motion: reduce {
-      *,
-      *::before,
-      *::after {
-        transition: none !important;
-      }
+    @media (max-width: 480px) {
+      body { padding: 18px; }
+      .container { transform: translateY(-8vh); }
+      .logo { margin-bottom: 24px; }
+      .footer { bottom: 12px; }
     }
   </style>
 </head>
-
 <body>
   <main class="container">
     <div class="logo" aria-label="WriskNuk Search">
       WriskNuk <span>Search</span>
     </div>
 
-    <form action="https://www.google.com/search" method="get">
+    <!-- Контролы поиска -->
+    <div class="search-controls">
+      <select id="engine-select" class="search-select">
+        <option value="google">Google</option>
+        <option value="yandex">Яндекс</option>
+      </select>
+    </div>
+
+    <form action="https://www.google.com/search" method="get" id="search-form">
       <div class="search-box">
         <input
           class="search-input"
@@ -175,17 +256,136 @@
           autocomplete="off"
           autofocus
           required
+          id="search-query"
         >
-      </div>
-
-      <div class="buttons-row">
-        <button class="btn" type="submit">Поиск в сети</button>
+        <button class="search-arrow-btn" type="submit" aria-label="Искать">➔</button>
       </div>
     </form>
+
+    <!-- Сетка закладок -->
+    <div class="bookmarks-container" id="bookmarks-grid">
+      <!-- Закладки рендерятся через JS -->
+    </div>
   </main>
 
+  <!-- Оверлей добавления закладки -->
+  <div class="overlay" id="bookmark-overlay">
+    <div class="modal">
+      <div class="modal-title">Новая закладка</div>
+      <div class="modal-field">
+        <label for="bm-name">Название</label>
+        <input type="text" id="bm-name" class="modal-input" placeholder="Например, GitHub" autocomplete="off">
+      </div>
+      <div class="modal-field">
+        <label for="bm-url">URL-адрес</label>
+        <input type="text" id="bm-url" class="modal-input" placeholder="https://example.com" autocomplete="off">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" id="bm-cancel">Отмена</button>
+        <button type="button" class="modal-btn confirm" id="bm-save">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
   <footer class="footer">
-    © WriskNuk Search. Поиск выполняется через Google.
+    © WriskNuk Search. Поиск выполняется через выбранный сервис.
   </footer>
-</body>
-</html>
+
+  <script>
+    (function () {
+      const defaultBookmarks = [
+        { name: 'GitHub', url: 'https://github.com' },
+        { name: 'Yandex', url: 'https://yandex.ru' },
+        { name: 'YouTube', url: 'https://youtube.com' }
+      ];
+
+      const grid = document.getElementById('bookmarks-grid');
+      const overlay = document.getElementById('bookmark-overlay');
+      const inputName = document.getElementById('bm-name');
+      const inputUrl = document.getElementById('bm-url');
+      const engineSelect = document.getElementById('engine-select');
+      const searchForm = document.getElementById('search-form');
+      const searchInput = document.getElementById('search-query');
+      const body = document.body;
+
+      // --- Логика выбора поисковика ---
+      engineSelect.addEventListener('change', (e) => {
+        const value = e.target.value;
+        
+        // Меняем действие формы
+        if (value === 'google') {
+          searchForm.action = 'https://www.google.com/search';
+          body.setAttribute('data-engine', 'google');
+          searchInput.placeholder = 'Введите поисковый запрос';
+        } else {
+          searchForm.action = 'https://yandex.ru/search/';
+          body.setAttribute('data-engine', 'yandex');
+          // Для Яндекса удобно сразу искать что-то, а не просто открывать yandex.ru
+          searchInput.placeholder = 'Что ищем в Яндексе?';
+        }
+      });
+
+      function getBookmarks() {
+        const stored = localStorage.getItem('wn_bookmarks');
+        if (stored) {
+          try { return JSON.parse(stored); } catch (e) { return defaultBookmarks; }
+        }
+        return defaultBookmarks;
+      }
+
+      function saveBookmarks(arr) {
+        localStorage.setItem('wn_bookmarks', JSON.stringify(arr));
+      }
+
+      function render() {
+        // Очистка сетки
+        while (grid.firstChild) {
+          grid.removeChild(grid.firstChild);
+        }
+
+        const list = getBookmarks();
+
+        // Отрендерить существующие элементы
+        list.forEach(function (item, index) {
+          const card = document.createElement('a');
+          card.className = 'bookmark-card';
+          card.href = item.url;
+          card.target = '_blank'; // Открывать в новой вкладке
+
+          const icon = document.createElement('div');
+          icon.className = 'bookmark-icon';
+          icon.textContent = item.name ? item.name.charAt(0).toUpperCase() : '?';
+
+          const title = document.createElement('div');
+          title.className = 'bookmark-title';
+          title.textContent = item.name;
+
+          const delBtn = document.createElement('button');
+          delBtn.className = 'bookmark-delete';
+          delBtn.textContent = '×';
+          delBtn.type = 'button';
+          
+          delBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            removeBookmark(index);
+          });
+
+          card.appendChild(icon);
+          card.appendChild(title);
+          card.appendChild(delBtn);
+          grid.appendChild(card);
+        });
+
+        // Добавить кнопку "+"
+        const addCard = document.createElement('div');
+        addCard.className = 'bookmark-card add-bookmark-btn';
+        addCard.addEventListener('click', openModal);
+
+        const addIcon = document.createElement('div');
+        addIcon.className = 'bookmark-icon';
+        addIcon.textContent = '+';
+
+        const addTitle = document.createElement('div');
+        addTitle.className = 'bookmark-title';
+        addTitle.textContent =
