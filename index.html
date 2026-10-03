@@ -33,7 +33,6 @@
     .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
     .modal-btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; cursor: pointer; background: #fff; }
     .modal-btn.confirm { background: var(--accent); color: #fff; border-color: var(--accent); }
-    .results-wrapper { width: min(100%, 650px); display: none; text-align: left; margin-top: 20px; }
     .footer { position: relative; margin-top: auto; padding-top: 40px; color: var(--muted); font-size: 11px; text-align: center; }
     @media (max-width: 480px) { .bookmarks-container { grid-template-columns: repeat(3, 1fr); gap: 8px; } }
   </style>
@@ -47,8 +46,6 @@
     </div>
     <div class="bookmarks-container" id="grid"></div>
   </main>
-  
-  <section class="results-wrapper" id="res"></section>
   
   <div class="overlay" id="ov">
     <div class="modal">
@@ -65,7 +62,7 @@
     (function () {
       var def = [{ name: 'GitHub', url: 'https://github.com' }, { name: 'Yandex', url: 'https://yandex.ru' }, { name: 'YouTube', url: 'https://youtube.com' }];
       var grid = document.getElementById('grid'), ov = document.getElementById('ov'), bn = document.getElementById('bn'), bu = document.getElementById('bu');
-      var q = document.getElementById('q'), box = document.getElementById('box'), res = document.getElementById('res'), goBtn = document.getElementById('go-btn');
+      var q = document.getElementById('q'), box = document.getElementById('box'), goBtn = document.getElementById('go-btn');
       
       function getB() { try { return JSON.parse(localStorage.getItem('wn_b')) || def; } catch(e) { return def; } }
       function create(t, c, x) { var n = document.createElement(t); if(c) n.className = c; if(x) n.textContent = x; return n; }
@@ -86,24 +83,9 @@
       function doSearch() {
         var txt = q.value.trim(); if(!txt) return;
         
-        grid.style.display = 'none';
-        box.classList.add('top');
-        res.innerHTML = '';
-        
-        // Ошибка исправлена: убрали кодирование для самого URL-адреса searx.be
-        // Кодируем ТОЛЬКО поисковый запрос внутри параметра q
+        // Перенаправляем на стабильный и чистый SearXNG в отдельной вкладке
         var searchUrl = 'https://searx.be' + encodeURIComponent(txt) + '&format=html';
-        
-        var frame = create('iframe');
-        frame.src = searchUrl;
-        frame.style.width = '100%';
-        frame.style.height = '78vh';
-        frame.style.border = '0';
-        frame.style.borderRadius = '12px';
-        frame.style.boxShadow = '0 1px 6px rgba(0,0,0,0.1)';
-        
-        res.appendChild(frame);
-        res.style.display = 'block';
+        window.open(searchUrl, '_blank');
       }
 
       goBtn.addEventListener('click', doSearch); 
