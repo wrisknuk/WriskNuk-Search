@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>WriskNuk Search</title>
+  <script>
+    if (window.location.protocol === 'file:') {
+      const repoName = window.location.pathname.split('/').slice(-2, -1) || 'wrisknuk-search';
+      window.location.replace('https://github.io' + repoName + '/');
+    }
+  </script>
+  <style>
+    :root {
+      --text: #202124;
+      --muted: #70757a;
+      --border: #dfe1e5;
+      --button: #f8f9fa;
+      --button-hover: #f1f3f4;
+      --accent: #ea4335;
+      --shadow: 0 1px 6px rgba(32, 33, 36, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      color: var(--text);
+      background: #fff;
+    }
+
+    .container {
+      width: min(100%, 600px);
+      text-align: center;
+      transform: translateY(-5vh);
+    }
+
+    .logo {
+      margin-bottom: 30px;
+      font-size: clamp(32px, 8vw, 48px);
+      font-weight: 700;
+      letter-spacing: -1.5px;
+      user-select: none;
+    }
+
+    .logo span {
+      color: var(--accent);
+    }
+
+    form {
+      width: 100%;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      min-height: 48px;
+      padding: 5px 14px 5px 18px;
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      background: #fff;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .search-box:focus-within {
+      border-color: transparent;
+      box-shadow: 0 1px 8px rgba(32, 33, 36, 0.28);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 0;
+      border: 0;
+      outline: 0;
+      color: var(--text);
+      background: transparent;
+      font-size: 16px;
+    }
+
+    .search-input::placeholder {
+      color: var(--muted);
+    }
+
+    .search-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .search-ctrl-btn {
+      background: none;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      transition: color 0.2s ease;
+    }
+
+    .search-ctrl-btn:hover {
+      color: var(--text);
+    }
+
+    .btn-clear {
+      visibility: hidden;
+    }
+
+    .bookmarks-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 40px;
+      width: 100%;
+    }
+
+    .bookmark-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 12px;
+      transition: transform 0.2s ease;
+    }
+
+    .bookmark-item:hover {
+      transform: translateY(-2px);
+    }
+
+    .bookmark-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--button);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    .bookmark-item:hover .bookmark-icon {
+      background: var(--button-hover);
+      color: var(--accent);
+    }
+
+    .footer {
+      position: fixed;
+      right: 0;
+      bottom: 16px;
+      left: 0;
+      padding: 0 16px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 18px;
+      }
+
+      .container {
+        transform: translateY(-6vh);
+      }
+
+      .logo {
+        margin-bottom: 24px;
+      }
+
+      .bookmarks-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+      }
+
+      .footer {
+        bottom: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <div class="logo" aria-label="WriskNuk Search">
+      WriskNuk <span>Search</span>
+    </div>
+
+    <form action="https://google.com" method="get" id="search-form">
+      <div class="search-box">
+        <input
+          class="search-input"
+          type="search"
+          name="q"
+          id="search-query"
+          placeholder="Введите поисковый запрос"
+          aria-label="Поисковый запрос"
+          autocomplete="off"
+          autofocus
+          required
+        >
+        <div class="search-controls">
+          <button type="button" class="search-ctrl-btn btn-clear" id="search-clear" aria-label="Очистить">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+          <button type="submit" class="search-ctrl-btn" aria-label="Поиск">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <div class="bookmarks-grid">
+      <a href="https://vk.com" class="bookmark-item">
+        <div class="bookmark-icon">VK</div>
+        <span>ВКонтакте</span>
+      </a>
+      <a href="https://github.com" class="bookmark-item">
+        <div class="bookmark-icon">GH</div>
+        <span>GitHub</span>
+      </a>
+      <a href="https://4pda.to" class="bookmark-item">
+        <div class="bookmark-icon">4P</div>
+        <span>4PDA</span>
+      </a>
+      <a href="https://youtube.com" class="bookmark-item">
+        <div class="bookmark-icon">YT</div>
+        <span>YouTube</span>
+      </a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    © WriskNuk Search. Поиск выполняется через Google.
+  </footer>
+
+  <script>
+    const queryInput = document.getElementById('search-query');
+    const clearBtn = document.getElementById('search-clear');
+
+    queryInput.addEventListener('input', () => {
+      if (queryInput.value.length > 0) {
+        clearBtn.style.visibility = 'visible';
+      } else {
+        clearBtn.style.visibility = 'hidden';
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      queryInput.value = '';
+      clearBtn.style.visibility = 'hidden';
+      queryInput.focus();
+    });
+  </script>
+</body>
+</html>
