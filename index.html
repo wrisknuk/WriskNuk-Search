@@ -4,7 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WriskNuk Search</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    :root { --text: #202124; --muted: #70757a; --border: #dfe1e5; --accent: #ea4335; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; font-family: Arial, sans-serif; color: var(--text); background: #fff; overflow-x: hidden; }
+    .container { width: min(100%, 600px); margin: auto; text-align: center; }
+    .container.top { margin-top: 10px; margin-bottom: 20px; }
+    .logo { margin-bottom: 24px; font-size: clamp(32px, 8vw, 48px); font-weight: 700; letter-spacing: -1.5px; user-select: none; }
+    .logo span { color: var(--accent); }
+    .search-box { display: flex; align-items: center; width: 100%; min-height: 48px; padding: 5px 10px 5px 18px; border: 1px solid var(--border); border-radius: 28px; box-shadow: 0 1px 6px rgba(32,33,36,0.15); }
+    .search-input { width: 100%; padding: 8px 0; border: 0; outline: 0; font-size: 16px; color: var(--text); background: transparent; }
+    .search-arrow-btn { width: 38px; height: 38px; border: 0; border-radius: 50%; background: transparent; color: var(--accent); font-size: 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .bookmarks-container { margin-top: 32px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; }
+    .bookmark-card { position: relative; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--text); padding: 8px; border-radius: 8px; }
+    .bookmark-card:hover { background: #f1f3f4; }
+    .bookmark-icon { width: 44px; height: 44px; border-radius: 50%; background: #f8f9fa; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: var(--muted); margin-bottom: 6px; border: 1px solid var(--border); flex-shrink: 0; }
+    .bookmark-title { font-size: 11px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bookmark-delete { position: absolute; top: 0; right: 4px; width: 16px; height: 16px; background: #ff4d4d; color: #fff; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; cursor: pointer; border: 0; z-index: 5; }
+    .bookmark-card:hover .bookmark-delete { display: flex; }
+    .add-bookmark-btn { cursor: pointer; }
+    .add-bookmark-btn .bookmark-icon { background: #fff; border: 1px dashed var(--muted); color: var(--accent); }
+    .overlay { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal { background: #fff; padding: 24px; border-radius: 8px; width: min(100%, 320px); }
+    .modal-title { margin: 0 0 16px 0; font-size: 18px; font-weight: 700; }
+    .modal-field { margin-bottom: 12px; }
+    .modal-field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .modal-input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; outline: 0; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+    .modal-btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; cursor: pointer; background: #fff; }
+    .modal-btn.confirm { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .results-wrapper { width: min(100%, 650px); display: none; text-align: left; margin-top: 20px; }
+    .footer { position: relative; margin-top: auto; padding-top: 40px; color: var(--muted); font-size: 11px; text-align: center; }
+    @media (max-width: 480px) { .bookmarks-container { grid-template-columns: repeat(3, 1fr); gap: 8px; } }
+  </style>
 </head>
 <body>
   <main class="container" id="box">
@@ -13,7 +45,6 @@
       <input class="search-input" type="search" id="q" placeholder="Введите поисковый запрос" autocomplete="off" autofocus>
       <button class="search-arrow-btn" type="button" id="go-btn">➔</button>
     </div>
-    <div class="loading-status" id="ld">Поиск ответов...</div>
     <div class="bookmarks-container" id="grid"></div>
   </main>
   
@@ -22,23 +53,68 @@
   <div class="overlay" id="ov">
     <div class="modal">
       <div class="modal-title">Новая закладка</div>
-      <div class="modal-field">
-        <label>Название</label>
-        <input type="text" id="bn" class="modal-input" autocomplete="off">
-      </div>
-      <div class="modal-field">
-        <label>URL-адрес</label>
-        <input type="text" id="bu" class="modal-input" autocomplete="off">
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="modal-btn" id="bc">Отмена</button>
-        <button type="button" class="modal-btn confirm" id="bs">Сохранить</button>
-      </div>
+      <div class="modal-field"><label>Название</label><input type="text" id="bn" class="modal-input" autocomplete="off"></div>
+      <div class="modal-field"><label>URL-адрес</label><input type="text" id="bu" class="modal-input" autocomplete="off"></div>
+      <div class="modal-actions"><button type="button" class="modal-btn" id="bc">Отмена</button><button type="button" class="modal-btn confirm" id="bs">Сохранить</button></div>
     </div>
   </div>
   
   <footer class="footer">© WriskNuk Search. Полноценный независимый поиск.</footer>
 
-  <script src="app.js"></script>
+  <script>
+    (function () {
+      var def = [{ name: 'GitHub', url: 'https://github.com' }, { name: 'Yandex', url: 'https://yandex.ru' }, { name: 'YouTube', url: 'https://youtube.com' }];
+      var grid = document.getElementById('grid'), ov = document.getElementById('ov'), bn = document.getElementById('bn'), bu = document.getElementById('bu');
+      var q = document.getElementById('q'), box = document.getElementById('box'), res = document.getElementById('res'), goBtn = document.getElementById('go-btn');
+      
+      function getB() { try { return JSON.parse(localStorage.getItem('wn_b')) || def; } catch(e) { return def; } }
+      function create(t, c, x) { var n = document.createElement(t); if(c) n.className = c; if(x) n.textContent = x; return n; }
+      
+      function render() {
+        grid.innerHTML = '';
+        getB().forEach(function (b, i) {
+          var card = create('a', 'bookmark-card'); card.href = b.url;
+          var del = create('button', 'bookmark-delete', '×'); del.type = 'button';
+          del.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); var l = getB(); l.splice(i, 1); localStorage.setItem('wn_b', JSON.stringify(l)); render(); });
+          card.appendChild(create('div', 'bookmark-icon', b.name ? b.name.charAt(0).toUpperCase() : '?'));
+          card.appendChild(create('div', 'bookmark-title', b.name)); card.appendChild(del); grid.appendChild(card);
+        });
+        var add = create('div', 'bookmark-card add-bookmark-btn'); add.appendChild(create('div', 'bookmark-icon', '+')); add.appendChild(create('div', 'bookmark-title', 'Добавить'));
+        add.addEventListener('click', function() { bn.value = ''; bu.value = 'https://'; ov.style.display = 'flex'; bn.focus(); }); grid.appendChild(add);
+      }
+
+      function doSearch() {
+        var txt = q.value.trim(); if(!txt) return;
+        
+        grid.style.display = 'none';
+        box.classList.add('top');
+        res.innerHTML = '';
+        
+        // Используем свободный поисковый движок eorozco без заголовков и X-Frame ограничений
+        var searchUrl = 'https://eorozco.org' + encodeURIComponent(txt);
+        
+        // Генерируем iframe на всю рабочую область смартфона
+        var frame = create('iframe');
+        frame.src = searchUrl;
+        frame.style.width = '100%';
+        frame.style.height = '78vh';
+        frame.style.border = '0';
+        frame.style.borderRadius = '12px';
+        frame.style.boxShadow = '0 1px 6px rgba(0,0,0,0.1)';
+        
+        res.appendChild(frame);
+        res.style.display = 'block';
+      }
+
+      goBtn.addEventListener('click', doSearch); 
+      q.addEventListener('keydown', function(e) { if(e.key === 'Enter') { e.preventDefault(); doSearch(); } });
+      document.getElementById('bc').addEventListener('click', function() { ov.style.display = 'none'; });
+      document.getElementById('bs').addEventListener('click', function() {
+        var n = bn.value.trim(), u = bu.value.trim(); if (!n || !u) return;
+        var l = getB(); l.push({ name: n, url: u.match(/^https?:\/\//i) ? u : 'https://' + u }); localStorage.setItem('wn_b', JSON.stringify(l)); ov.style.display = 'none'; render();
+      });
+      ov.addEventListener('click', function(e) { if(e.target === ov) ov.style.display = 'none'; }); render();
+    })();
+  </script>
 </body>
 </html>
