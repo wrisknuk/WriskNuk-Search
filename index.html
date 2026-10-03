@@ -5,23 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WriskNuk Search</title>
   <style>
-    /* Спартанский плоский стиль Web 1.0 под стать урезанному Гуглу */
+    /* Спартанский плоский стиль Web 1.0 без закруглений и теней под MiOS */
     body { margin: 10px; padding: 0; font-family: Arial, sans-serif; color: #000; background: #fff; font-size: 14px; }
     .logo { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
     .logo span { color: #cc0000; }
     
-    /* Сверхлегкая плоская форма */
     .search-area { margin-bottom: 15px; }
     .search-input { width: 70%; padding: 5px; border: 1px solid #999; font-size: 14px; }
     .search-btn { padding: 5px 10px; border: 1px solid #999; background: #eee; font-size: 14px; cursor: pointer; }
     
-    /* Блок закладок */
     .bookmarks { margin-top: 15px; margin-bottom: 15px; border-top: 1px solid #ccc; padding-top: 10px; }
     .b-link { display: inline-block; margin-right: 15px; color: #0000cc; text-decoration: none; }
     .b-del { color: #cc0000; font-size: 11px; margin-left: 3px; cursor: pointer; }
     .btn-add { font-size: 12px; color: #333; cursor: pointer; text-decoration: underline; }
     
-    /* Окно добавления */
+    /* Монолитная маскированная выдача WriskNuk */
+    .res-box { display: none; margin-top: 15px; border-top: 1px dashed #666; padding-top: 15px; }
+    .item { margin-bottom: 15px; }
+    .item-url { font-size: 11px; color: #006600; word-break: break-all; }
+    .item-title { font-size: 16px; color: #0000cc; text-decoration: none; font-weight: bold; }
+    .item-title:hover { text-decoration: underline; }
+    .item-text { font-size: 13px; color: #333; margin-top: 2px; }
+    
+    .status { display: none; color: #666; font-style: italic; margin-top: 10px; }
+    
     .pop { position: fixed; top: 20%; left: 10%; width: 80%; background: #fff; border: 2px solid #000; padding: 15px; display: none; z-index: 100; }
     .pop-field { margin-bottom: 8px; }
     .pop-field label { display: block; font-size: 11px; color: #666; }
@@ -33,17 +40,14 @@
 
   <div class="logo">WriskNuk <span>Search</span></div>
   
-  <!-- Нативная форма, вызывающая чистый текстовый Google Basic без JS и скриптов -->
-  <form action="https://www.google.com/search" method="GET" class="search-area">
-    <!-- Секретные флаги для нищих систем: gbv=1 (голый HTML), udm=14 (веб-ссылки без AI-блоков) -->
-    <input type="hidden" name="gbv" value="1">
-    <input type="hidden" name="udm" value="14">
-    
-    <input type="text" name="q" id="q" class="search-input" placeholder="Поиск..." autocomplete="off" autofocus required>
-    <button type="submit" class="search-btn">➔</button>
-  </form>
+  <div class="search-area">
+    <input type="text" id="q" class="search-input" placeholder="Поиск..." autocomplete="off" autofocus>
+    <button type="button" id="go-btn" class="search-btn">➔</button>
+  </div>
 
+  <div class="status" id="ld">Загрузка...</div>
   <div class="bookmarks" id="grid"></div>
+  <div class="res-box" id="res"></div>
 
   <div class="pop" id="ov">
     <div style="font-weight:bold; margin-bottom:10px;">Новая закладка</div>
@@ -59,7 +63,11 @@
     (function () {
       var def = [{ name: 'GitHub', url: 'https://github.com' }, { name: 'Yandex', url: 'https://yandex.ru' }];
       var grid = document.getElementById('grid'), ov = document.getElementById('ov'), bn = document.getElementById('bn'), bu = document.getElementById('bu');
+      var q = document.getElementById('q'), res = document.getElementById('res'), ld = document.getElementById('ld'), goBtn = document.getElementById('go-btn');
       
+      // Сверхлегкий поисковый узел без трекеров, рекламы и тяжелого JS
+      var GATEWAY_URL = 'https://duckduckgo.com';
+
       function getB() { try { return JSON.parse(localStorage.getItem('wn_b')) || def; } catch(e) { return def; } }
       function create(t, c, x) { var n = document.createElement(t); if(c) n.className = c; if(x) n.textContent = x; return n; }
       
@@ -67,23 +75,64 @@
         grid.innerHTML = '';
         var list = getB();
         for (var i = 0; i < list.length; i++) {
-          var b = list[i];
-          var a = create('a', 'b-link', b.name); a.href = b.url;
-          var del = create('span', 'b-del', '[x]');
           (function(index) {
+            var b = list[index];
+            var a = create('a', 'b-link', b.name); a.href = b.url;
+            var del = create('span', 'b-del', '[x]');
             del.addEventListener('click', function(e) {
               e.preventDefault(); e.stopPropagation();
               var l = getB(); l.splice(index, 1);
               localStorage.setItem('wn_b', JSON.stringify(l)); render();
             });
+            a.appendChild(del); grid.appendChild(a);
           })(i);
-          a.appendChild(del); grid.appendChild(a);
         }
         var add = create('span', 'btn-add', '+ Добавить');
         add.addEventListener('click', function() { bn.value = ''; bu.value = 'https://'; ov.style.display = 'block'; bn.focus(); });
         grid.appendChild(add);
       }
 
+      async function doSearch() {
+        var txt = q.value.trim(); if(!txt) return;
+        ld.textContent = 'Поиск ответов...'; ld.style.display = 'block'; res.style.display = 'none'; res.innerHTML = '';
+        try {
+          // Запрашиваем официальный легкий текстовый API напрямую, который работает везде без CORS-прокси
+          var r = await fetch(GATEWAY_URL + encodeURIComponent(txt));
+          if (!r.ok) throw new Error();
+          var data = await r.json();
+
+          ld.style.display = 'none'; res.style.display = 'block';
+          var topics = data.RelatedTopics || [];
+          
+          if (topics.length === 0) { ld.textContent = 'Ничего не найдено.'; ld.style.display = 'block'; return; }
+          
+          var count = 0;
+          for (var i = 0; i < topics.length; i++) {
+            var t = topics[i];
+            if (t.FirstURL && t.Text) {
+              count++;
+              var iDiv = create('div', 'item');
+              iDiv.appendChild(create('div', 'item-url', t.FirstURL));
+              
+              // Вытаскиваем заголовок из общего текста ответа
+              var titleText = t.Text;
+              var dashIdx = titleText.indexOf(' - ');
+              if (dashIdx !== -1) titleText = titleText.substring(0, dashIdx);
+              if (titleText.length > 60) titleText = titleText.substring(0, 60) + '...';
+
+              var iLink = create('a', 'item-title', titleText); iLink.href = t.FirstURL; iLink.target = '_blank';
+              iDiv.appendChild(iLink);
+              
+              iDiv.appendChild(create('div', 'item-text', t.Text));
+              res.appendChild(iDiv);
+            }
+          }
+          if(count === 0) { ld.textContent = 'Ничего не найдено.'; ld.style.display = 'block'; }
+        } catch(e) { ld.textContent = 'Ошибка сети. Попробуйте еще раз.'; ld.style.display = 'block'; }
+      }
+
+      goBtn.addEventListener('click', doSearch);
+      q.addEventListener('keydown', function(e) { if(e.key === 'Enter') { e.preventDefault(); doSearch(); } });
       document.getElementById('bc').addEventListener('click', function() { ov.style.display = 'none'; });
       document.getElementById('bs').addEventListener('click', function() {
         var n = bn.value.trim(), u = bu.value.trim(); if (!n || !u) return;
