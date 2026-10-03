@@ -3,113 +3,27 @@
 <head>
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
-<title>WriskNuk</title>
+<title>WriskNuk Search</title>
 <style>
-body{font:18px monospace;max-width:600px;margin:0 auto;padding:18px;background:#fff;color:#000}
-h1{font-size:30px;margin:0 0 14px}
-h1 b{color:#c00}
-#q{width:68%;padding:9px;font:18px monospace;border:2px solid #000}
-#g{padding:9px;font:18px monospace;font-weight:700;border:2px solid #000;background:#eee}
-#e{font-size:16px;color:#666;margin:14px 0}
-#o{display:none;margin:0;padding:14px;border:2px solid #000}
-#u{font-size:13px;color:#060;margin:0 0 6px;word-wrap:break-word;word-break:break-all}
-#t{font-size:22px;font-weight:700;color:#00c}
-#s{font-size:17px;color:#333;margin:8px 0 0}
-#n{display:none;width:100%;margin:12px 0 0;padding:12px;font:18px monospace;font-weight:700;border:2px solid #000;background:#eee}
+  body { font: 20px monospace; max-width: 600px; margin: 0 auto; padding: 20px; background: #fff; color: #000; }
+  h1 { font-size: 32px; margin: 0 0 20px; }
+  h1 b { color: #c00; }
+  form { display: flex; gap: 10px; }
+  input[type=text] { flex-grow: 1; padding: 12px; font: 20px monospace; border: 2px solid #000; background: #fff; color: #000; }
+  input[type=submit] { padding: 12px 20px; font: 20px monospace; font-weight: 700; border: 2px solid #000; background: #eee; color: #000; }
+  p.note { margin-top: 20px; font-size: 14px; color: #666; }
 </style>
 </head>
 <body>
-<h1>WriskNuk<b>Search</b></h1>
-<form id=f action=https://lite.duckduckgo.com/lite/ method=get>
-<input id=q name=q autofocus><input id=g type=submit value="&gt;">
-</form>
-<p id=e></p>
-<div id=o><p id=u></p><a id=t href=# target=_blank></a><p id=s></p></div>
-<p><input id=n type=button value="NEXT"></p>
-<script>
-(function(){
-var P=['https://api.allorigins.win/raw?url=','https://api.codetabs.com/v1/proxy?quest='];
-var B='https://lite.duckduckgo.com/lite/?q=';
-function E(x){return document.getElementById(x)}
-function C(x,v){x.textContent=v}
-function dec(z){try{return decodeURIComponent(z)}catch(x){return z}}
-function enc(z){return encodeURIComponent(z)}
-var f=E('f'),q=E('q'),e=E('e'),o=E('o'),u=E('u'),t=E('t'),s=E('s'),n=E('n');
-var L=[],i=0,pg=0,tk='',pi=0,Q='';
-if(window.XMLHttpRequest){f.onsubmit=function(){Q=enc(q.value||'');if(!Q)return!1;L=[];i=0;pg=0;tk='';hide();ask(0,0);return!1};}
-function hide(){o.style.display='none';n.style.display='none';C(e,'...')}
-function url(p){return B+Q+'&kl=ru-ru'+(p&&tk?'&vqd='+enc(tk):'')+(p?'&s='+p*20+'&dc='+(p*20+1):'')}
-function ask(p,tr){
- if(tr>P.length-1){C(e,'proxy off');return}
- C(e,'load...');
- var r;try{r=new XMLHttpRequest()}catch(x){C(e,'no xhr');return}
- var d=0,px=P[pi++%P.length];
- function bad(){if(d)return;d=1;ask(p,tr+1)}
- function ok(){
-  if(d)return;d=1;
-  var h=r.responseText||'';
-  if(h.length<400||h.indexOf('Unfortunately')>0){ask(p,tr+1);return}
-  var v=grab(h),a={},k,j=L.length,ad=0;
-  for(k=0;k<j;k++)a[L[k].u]=1;
-  for(k=0;k<v.length;k++)if(!a[v[k].u]){a[v[k].u]=1;L.push(v[k]);ad++}
-  var w=val(h,'name="vqd"');if(w)tk=w;
-  if(!ad){C(e,'end');return}
-  pg=p+1;i=p?L.length-ad:0;C(e,'');show();
- }
- r.onreadystatechange=function(){if(r.readyState!=4)return;var c=0;try{c=r.status}catch(x){}(c>199&&c<300)?ok():bad()};
- try{r.timeout=15e3;r.open('GET',px+enc(url(p)),1);r.send('')}catch(x){bad()}
-}
-function grab(h){
- var r=[],p=0,g=0;
- while(g++<25){
-  var a=h.indexOf('result-link',p);if(a<0)break;
-  var b=h.indexOf('<a',a);if(b<0)break;
-  var c=h.indexOf('>',b);if(c<0)break;
-  var tg=h.substring(b,c+1),hs=tg.indexOf('href="');
-  if(hs<0){p=c;continue}
-  var he=tg.indexOf('"',hs+6),ur=fix(tg.substring(hs+6,he));
-  var en=h.indexOf('</a>',c);if(en<0)break;
-  var ti=txt(h.substring(c+1,en));
-  if(!ur||!ti){p=en;continue}
-  var sn='',nx=h.indexOf('result-link',c),js=h.indexOf('result-snippet',c),jj=-1;
-  if(js>0&&(nx<0||js<nx)){
-   var gs=h.indexOf('>',js),se=h.indexOf('</td>',gs);
-   if(se<0)se=gs+300;sn=txt(h.substring(gs+1,se));jj=js;
-  }
-  r.push({u:ur,t:ti,s:sn});p=jj>0?jj:en;
- }
- return r;
-}
-function fix(z){
- var y='',k=z.indexOf('uddg=');
- if(k>=0){y=dec(z.substring(k+5));var a=y.indexOf('&');if(a>0)y=y.substring(0,a)}
- else if(z.substring(0,2)=='//')y='https:'+z;
- else if(z.substring(0,1)=='/')return'';
- else y=z;
- if(y.indexOf('http')!=0)return'';
- var hh=y.substring(y.indexOf('//')+2),l=hh.indexOf('/');
- if(l>0)hh=hh.substring(0,l);
- return hh.indexOf('duckduckgo')>=0?'':y;
-}
-function txt(z){
- z=z.replace(/<[^>]*>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"');
- z=z.replace(/&#0?39;/g,"'").replace(/&nbsp;/g,' ').replace(/&#(\d+);/g,function(m,d){return d>31&&d<127?String.fromCharCode(d):' '});
- z=z.replace(/&mdash;/g,'- ').replace(/&ndash;/g,'-').replace(/&hellip;/g,'...').replace(/&laquo;/g,'<<').replace(/&raquo;/g,'>>').replace(/&copy;/g,'(c)');
- z=z.replace(/&amp;/g,'&');
- return z.replace(/\s+/g,' ').replace(/^ /,'').replace(/ $/,'');
-}
-function val(h,m){var k=h.indexOf(m);if(k<0)return'';var v=h.indexOf('value="',k);if(v<0)return'';var x=h.indexOf('"',v+7);return x<0?'':h.substring(v+7,x)}
-function show(){
- if(!L.length){C(e,'nothing');return}
- if(i>=L.length)i=L.length-1;
- var it=L[i];
- C(u,it.u);C(t,it.t);t.href=it.u;C(s,it.s||'');
- C(e,(i+1)+' / '+L.length);
- o.style.display='block';n.style.display='block';
- n.value=(i+1<L.length)?'NEXT >':'MORE DDG >';
-}
-n.onclick=function(){if(i+1<L.length){i++;show()}else if(pg<8)ask(pg,0);else C(e,'limit')};
-})();
-</script>
+  <h1>WriskNuk<b>Search</b></h1>
+  <!-- ГЛАВНОЕ ИЗМЕНЕНИЕ: форма сама уходит на DDG Lite -->
+  <form action="https://lite.duckduckgo.com/lite/" method="get">
+    <input type="text" name="q" placeholder="Введи запрос..." autofocus>
+    <input type="submit" value="&gt;">
+  </form>
+  <p class="note">
+    Это максимально лёгкий поиск. При нажатии кнопки браузер сам загрузит страницу DuckDuckGo Lite.<br>
+    Работает даже если в браузере нет JavaScript или он заблокирован.
+  </p>
 </body>
 </html>
