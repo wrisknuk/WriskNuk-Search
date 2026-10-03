@@ -90,7 +90,8 @@
         box.classList.add('top');
         res.innerHTML = '';
         
-        // Переключаемся на публичный стабильный узел метапоиска SearXNG без рекламы и логотипов
+        // Ошибка исправлена: убрали кодирование для самого URL-адреса searx.be
+        // Кодируем ТОЛЬКО поисковый запрос внутри параметра q
         var searchUrl = 'https://searx.be' + encodeURIComponent(txt) + '&format=html';
         
         var frame = create('iframe');
