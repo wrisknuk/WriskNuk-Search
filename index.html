@@ -116,7 +116,7 @@
     }
 
     .btn-clear {
-      visibility: hidden;
+      display: none;
     }
 
     .bookmarks-grid {
@@ -204,7 +204,7 @@
       WriskNuk <span>Search</span>
     </div>
 
-    <form action="https://google.com" method="get" id="search-form">
+    <form action="https://www.google.com/search" method="get" id="search-form">
       <div class="search-box">
         <input
           class="search-input"
@@ -255,19 +255,26 @@
   <script>
     const queryInput = document.getElementById('search-query');
     const clearBtn = document.getElementById('search-clear');
+    const form = document.getElementById('search-form');
 
     queryInput.addEventListener('input', () => {
       if (queryInput.value.length > 0) {
-        clearBtn.style.visibility = 'visible';
+        clearBtn.style.display = 'block';
       } else {
-        clearBtn.style.visibility = 'hidden';
+        clearBtn.style.display = 'none';
       }
     });
 
     clearBtn.addEventListener('click', () => {
       queryInput.value = '';
-      clearBtn.style.visibility = 'hidden';
+      clearBtn.style.display = 'none';
       queryInput.focus();
+    });
+
+    form.addEventListener('submit', (e) => {
+      if (!queryInput.value.trim()) {
+        e.preventDefault();
+      }
     });
   </script>
 </body>
