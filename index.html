@@ -90,10 +90,9 @@
         box.classList.add('top');
         res.innerHTML = '';
         
-        // Используем свободный поисковый движок eorozco без заголовков и X-Frame ограничений
-        var searchUrl = 'https://eorozco.org' + encodeURIComponent(txt);
+        // Переключаемся на публичный стабильный узел метапоиска SearXNG без рекламы и логотипов
+        var searchUrl = 'https://searx.be' + encodeURIComponent(txt) + '&format=html';
         
-        // Генерируем iframe на всю рабочую область смартфона
         var frame = create('iframe');
         frame.src = searchUrl;
         frame.style.width = '100%';
