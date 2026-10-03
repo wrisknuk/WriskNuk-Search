@@ -13,13 +13,13 @@
     .logo span { color: var(--accent); transition: color 0.2s; }
     .engine-switcher { display: inline-flex; background: var(--button); border: 1px solid var(--border); border-radius: 20px; padding: 2px; margin-bottom: 28px; }
     .engine-btn { background: none; border: none; padding: 6px 16px; font-size: 13px; font-weight: 600; border-radius: 18px; cursor: pointer; color: var(--muted); transition: all 0.2s; }
-    .engine-btn.active[data-eng="google"] { background: var(--accent); color: #fff; }
-    .engine-btn.active[data-eng="yandex"] { background: var(--yandex); color: #000; }
+    .engine-btn.active { background: var(--accent); color: #fff; }
+    .engine-btn.active.ya { background: var(--yandex); color: #000; }
     form { width: 100%; margin-bottom: 36px; }
     .search-box { display: flex; align-items: center; width: 100%; min-height: 48px; padding-left: 18px; padding-right: 8px; border: 1px solid var(--border); border-radius: 28px; background: #fff; box-shadow: var(--shadow); }
     .search-input { flex: 1; padding: 12px 0; border: 0; outline: 0; color: var(--text); background: transparent; font-size: 16px; }
-    .submit-btn { background: none; border: none; padding: 8px; cursor: pointer; border-radius: 50%; color: var(--muted); display: flex; align-items: center; justify-content: center; }
-    .submit-btn:hover { background: var(--button-hover); color: var(--text); }
+    .submit-btn { background: none; border: none; padding: 8px; cursor: pointer; border-radius: 50%; color: var(--accent); display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
+    .submit-btn:hover { background: var(--button-hover); }
     .bookmarks-section { width: 100%; text-align: left; }
     .bookmarks-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px; }
     .bookmarks-title { font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
@@ -43,8 +43,8 @@
   <main class="container">
     <div class="logo" id="logo">WriskNuk <span id="logoSpan">Search</span></div>
     <div class="engine-switcher">
-      <button type="button" class="engine-btn active" data-eng="google">Google</button>
-      <button type="button" class="engine-btn" data-eng="yandex">Яндекс</button>
+      <button type="button" class="engine-btn" id="goBtn">Google</button>
+      <button type="button" class="engine-btn" id="yaBtn">Яндекс</button>
     </div>
     <form id="searchForm">
       <div class="search-box">
@@ -64,19 +64,19 @@
   </main>
   <footer class="footer" id="footerText">© WriskNuk Search. Разработано для экосистемы MiOS.</footer>
   <script>
-    var f=document.getElementById('searchForm'),inp=document.getElementById('searchInput'),sp=document.getElementById('logoSpan'),ft=document.getElementById('footerText'),btns=document.querySelectorAll('.engine-btn'),grid=document.getElementById('bookmarksGrid'),mBtn=document.getElementById('toggleManageBtn'),sBtn=document.getElementById('subBtn');
+    var f=document.getElementById('searchForm'),inp=document.getElementById('searchInput'),sp=document.getElementById('logoSpan'),ft=document.getElementById('footerText'),gBtn=document.getElementById('goBtn'),yBtn=document.getElementById('yaBtn'),grid=document.getElementById('bookmarksGrid'),mBtn=document.getElementById('toggleManageBtn'),sBtn=document.getElementById('subBtn');
     var eng=localStorage.getItem('wn_engine')||'google',ed=false;
     var def=[{name:'ВКонтакте',url:'https://vk.com',tag:'VK',color:'#0077FF'},{name:'GitHub',url:'https://github.com',tag:'GH',color:'#24292e'},{name:'4PDA',url:'https://4pda.to',tag:'4P',color:'#4CAF50'},{name:'YouTube',url:'https://youtube.com',tag:'YT',color:'#FF0000'}];
     var bms=JSON.parse(localStorage.getItem('wn_bookmarks'))||def;
     var cfg={google:{url:'https://google.com:'© WriskNuk Search. Поиск через Google.'},yandex:{url:'https://yandex.ru:'© WriskNuk Search. Поиск через Яндекс.'}};
-    function setEng(k){eng=k;localStorage.setItem('wn_engine',k);for(var i=0;i<btns.length;i++)btns[i].classList.toggle('active',btns[i].getAttribute('data-eng')===k);sp.style.color=k==='yandex'?'#ffcc00':cfg[k].color;sBtn.style.color=k==='yandex'?'#ffaa00':cfg[k].color;ft.textContent=cfg[k].txt;}
-    for(var i=0;i<btns.length;i++){btns[i].addEventListener('click',function(e){setEng(e.currentTarget.getAttribute('data-eng'));inp.focus();});}
+    function setEng(k){eng=k;localStorage.setItem('wn_engine',k);if(k==='google'){gBtn.classList.add('active');gBtn.classList.remove('ya');yBtn.classList.remove('active');yBtn.classList.remove('ya');sp.style.color=cfg.google.color;sBtn.style.color=cfg.google.color;}else{gBtn.classList.remove('active');yBtn.classList.add('active');yBtn.classList.add('ya');sp.style.color='#000000';sBtn.style.color='#ffaa00';}ft.textContent=cfg[k].txt;}
+    gBtn.addEventListener('click',function(){setEng('google');inp.focus();});yBtn.addEventListener('click',function(){setEng('yandex');inp.focus();});
     function render(){grid.innerHTML='';bms.forEach(function(b,idx){var c=document.createElement('div');c.className='bookmark-card'+(ed?' editing':'');c.addEventListener('click',function(){if(!ed)window.open(b.url,'_blank','noopener');});var ic=document.createElement('div');ic.className='bookmark-icon';ic.style.color=b.color;ic.textContent=b.tag;var lb=document.createElement('div');lb.className='bookmark-label';lb.textContent=b.name;var ov=document.createElement('div');ov.className='actions-overlay';var eB=document.createElement('button');eB.className='action-icon-btn edit';eB.setAttribute('data-index',idx);eB.textContent='✎';var dB=document.createElement('button');dB.className='action-icon-btn del';dB.setAttribute('data-index',idx);dB.textContent='✕';ov.appendChild(eB);ov.appendChild(dB);c.appendChild(ic);c.appendChild(lb);c.appendChild(ov);grid.appendChild(c);});var aC=document.createElement('div');aC.className='bookmark-card add-btn-card';var aI=document.createElement('div');aI.className='bookmark-icon';aI.textContent='+';var aL=document.createElement('div');aL.className='bookmark-label';aL.textContent='Добавить';aC.appendChild(aI);aC.appendChild(aL);aC.addEventListener('click',add);grid.appendChild(aC);}
     mBtn.addEventListener('click',function(){ed=!ed;mBtn.textContent=ed?'Готово':'Изменить';render();});
     grid.addEventListener('click',function(e){if(!ed)return;e.stopPropagation();var idx=e.target.getAttribute('data-index');if(idx===null)return;if(e.target.classList.contains('del')){bms.splice(idx,1);save();}else if(e.target.classList.contains('edit')){var b=bms[idx],n=prompt('Имя:',b.name),u=prompt('URL:',b.url);if(n&&u){b.name=n;b.url=u;b.tag=n.substring(0,2).toUpperCase();save();}}});
     function add(){var n=prompt('Имя закладок:'),u=prompt('URL (с https://):');if(n&&u){var clr=['#0077FF','#24292e','#4CAF50','#FF0000','#9C27B0'];bms.push({name:n,url:u,tag:n.substring(0,2).toUpperCase(),color:clr[Math.floor(Math.random()*clr.length)]});save();}}
     function save(){localStorage.setItem('wn_bookmarks',JSON.stringify(bms));render();}
-    f.addEventListener('submit',function(e){e.preventDefault();var q=inp.value.trim();if(q)window.location.href=cfg[eng].url+'?'+cfg[eng].param+'='+encodeURIComponent(q);});
+    f.addEventListener('submit',function(e){e.preventDefault();var q=inp.value.trim();if(q){window.location.href=cfg[eng].url+'?'+cfg[eng].param+'='+encodeURIComponent(q);}});
     setEng(eng);render();
   </script>
 </body>
