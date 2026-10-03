@@ -6,15 +6,14 @@
   <style>
     :root { --text: #202124; --muted: #70757a; --border: #dfe1e5; --accent: #ea4335; }
     * { box-sizing: border-box; }
-    body { margin: 0; height: 100dvh; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; font-family: Arial, sans-serif; color: var(--text); background: #fff; overflow-x: hidden; }
-    .container { width: min(100%, 600px); margin: auto; text-align: center; transition: margin 0.3s ease; }
-    .container.top { margin-top: 10px; margin-bottom: 10px; }
+    body { margin: 0; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; font-family: Arial, sans-serif; color: var(--text); background: #fff; overflow-x: hidden; }
+    .container { width: min(100%, 600px); margin: auto; text-align: center; }
+    .container.top { margin-top: 10px; margin-bottom: 20px; }
     .logo { margin-bottom: 24px; font-size: clamp(32px, 8vw, 48px); font-weight: 700; letter-spacing: -1.5px; user-select: none; }
     .logo span { color: var(--accent); }
     .search-box { display: flex; align-items: center; width: 100%; min-height: 48px; padding: 5px 10px 5px 18px; border: 1px solid var(--border); border-radius: 28px; box-shadow: 0 1px 6px rgba(32,33,36,0.15); }
     .search-input { width: 100%; padding: 8px 0; border: 0; outline: 0; font-size: 16px; color: var(--text); background: transparent; }
     .search-arrow-btn { width: 38px; height: 38px; border: 0; border-radius: 50%; background: transparent; color: var(--accent); font-size: 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .search-arrow-btn:hover { background: #f1f3f4; }
     .bookmarks-container { margin-top: 32px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; }
     .bookmark-card { position: relative; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--text); padding: 8px; border-radius: 8px; }
     .bookmark-card:hover { background: #f1f3f4; }
@@ -33,12 +32,15 @@
     .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
     .modal-btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; cursor: pointer; background: #fff; }
     .modal-btn.confirm { background: var(--accent); color: #fff; border-color: var(--accent); }
-    
-    /* Окно суверенного вывода результатов */
-    .search-frame-container { width: 100%; max-width: 800px; flex-grow: 1; display: none; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 10px; }
-    iframe { width: 100%; height: 100%; border: 0; }
-    
-    .footer { position: relative; margin-top: auto; padding-top: 20px; color: var(--muted); font-size: 11px; text-align: center; }
+    .results-wrapper { width: min(100%, 650px); display: none; text-align: left; margin-top: 20px; }
+    .result-item { margin-bottom: 24px; animation: fadeIn 0.3s ease; }
+    .result-url { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+    .result-title { font-size: 18px; color: #1a0dab; text-decoration: none; font-weight: 600; }
+    .result-title:hover { text-decoration: underline; }
+    .result-snippet { font-size: 14px; color: #4d5156; line-height: 1.48; margin-top: 4px; }
+    .loading-status { display: none; color: var(--muted); font-size: 14px; margin-top: 20px; }
+    .footer { position: relative; margin-top: auto; padding-top: 40px; color: var(--muted); font-size: 11px; text-align: center; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @media (max-width: 480px) { .bookmarks-container { grid-template-columns: repeat(3, 1fr); gap: 8px; } }
   </style>
 </head>
@@ -49,14 +51,10 @@
       <input class="search-input" type="search" id="q" placeholder="Введите поисковый запрос" autocomplete="off" autofocus>
       <button class="search-arrow-btn" type="button" id="go-btn">➔</button>
     </div>
+    <div class="loading-status" id="ld">Поиск ответов...</div>
     <div class="bookmarks-container" id="grid"></div>
   </main>
-
-  <!-- Результаты рендерятся внутри страницы -->
-  <div class="search-frame-container" id="frame-box">
-    <iframe id="search-frame" src=""></iframe>
-  </div>
-
+  <section class="results-wrapper" id="res"></section>
   <div class="overlay" id="ov">
     <div class="modal">
       <div class="modal-title">Новая закладка</div>
@@ -65,17 +63,15 @@
       <div class="modal-actions"><button type="button" class="modal-btn" id="bc">Отмена</button><button type="button" class="modal-btn confirm" id="bs">Сохранить</button></div>
     </div>
   </div>
-  <footer class="footer">© WriskNuk Search. Полная автономия.</footer>
+  <footer class="footer">© WriskNuk Search. Полноценный независимый поиск.</footer>
 
   <script>
     (function () {
       const def = [{ name: 'GitHub', url: 'https://github.com' }, { name: 'Yandex', url: 'https://yandex.ru' }, { name: 'YouTube', url: 'https://youtube.com' }];
       const grid = document.getElementById('grid'), ov = document.getElementById('ov'), bn = document.getElementById('bn'), bu = document.getElementById('bu');
-      const q = document.getElementById('q'), box = document.getElementById('box'), frameBox = document.getElementById('frame-box'), frame = document.getElementById('search-frame'), goBtn = document.getElementById('go-btn');
-      
+      const q = document.getElementById('q'), box = document.getElementById('box'), res = document.getElementById('res'), ld = document.getElementById('ld'), goBtn = document.getElementById('go-btn');
       function getB() { try { return JSON.parse(localStorage.getItem('wn_b')) || def; } catch(e) { return def; } }
       function create(t, c, x) { const n = document.createElement(t); if(c) n.className = c; if(x) n.textContent = x; return n; }
-      
       function render() {
         grid.innerHTML = '';
         getB().forEach(function (b, i) {
@@ -83,34 +79,41 @@
           const del = create('button', 'bookmark-delete', '×'); del.type = 'button';
           del.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); const l = getB(); l.splice(i, 1); localStorage.setItem('wn_b', JSON.stringify(l)); render(); });
           card.appendChild(create('div', 'bookmark-icon', b.name ? b.name.charAt(0).toUpperCase() : '?'));
-          card.appendChild(create('div', 'bookmark-title', b.name));
-          card.appendChild(del); grid.appendChild(card);
+          card.appendChild(create('div', 'bookmark-title', b.name)); card.appendChild(del); grid.appendChild(card);
         });
-        const add = create('div', 'bookmark-card add-bookmark-btn');
-        add.appendChild(create('div', 'bookmark-icon', '+')); add.appendChild(create('div', 'bookmark-title', 'Добавить'));
-        add.addEventListener('click', function() { bn.value = ''; bu.value = 'https://'; ov.style.display = 'flex'; bn.focus(); });
-        grid.appendChild(add);
+        const add = create('div', 'bookmark-card add-bookmark-btn'); add.appendChild(create('div', 'bookmark-icon', '+')); add.appendChild(create('div', 'bookmark-title', 'Добавить'));
+        add.addEventListener('click', function() { bn.value = ''; bu.value = 'https://'; ov.style.display = 'flex'; bn.focus(); }); grid.appendChild(add);
       }
-
-      function doSearch() {
+      async function doSearch() {
         const txt = q.value.trim(); if(!txt) return;
-        // Загружаем облегченную HTML-версию DuckDuckGo прямо в фрейм
-        frame.src = 'https://duckduckgo.com' + encodeURIComponent(txt);
-        box.classList.add('top');
-        grid.style.display = 'none';
-        frameBox.style.display = 'block';
+        ld.textContent = 'Поиск...'; ld.style.display = 'block'; res.style.display = 'none'; grid.style.display = 'none'; res.innerHTML = '';
+        try {
+          const r = await fetch('https://allorigins.win' + encodeURIComponent('https://duckduckgo.com' + encodeURIComponent(txt)));
+          const json = await r.json(); const parser = new DOMParser(); const doc = parser.parseFromString(json.contents, "text/html");
+          const items = doc.querySelectorAll('.result'); ld.style.display = 'none'; box.classList.add('top'); res.style.display = 'block';
+          let found = false;
+          items.forEach(function(item) {
+            const linkEl = item.querySelector('.result__url'), titleEl = item.querySelector('.result__title'), snipEl = item.querySelector('.result__snippet');
+            if (linkEl && titleEl) {
+              let u = linkEl.getAttribute('href') || '';
+              if (u.includes('uddg=')) u = decodeURIComponent(u.split('uddg=')[1].split('&')[0]);
+              if (!u.includes('://duckduckgo.com') && !u.startsWith('/')) {
+                found = true; const iDiv = create('div', 'result-item'); iDiv.appendChild(create('div', 'result-url', u));
+                const iLink = create('a', 'result-title', titleEl.textContent.trim()); iLink.href = u; iLink.target = '_blank'; iDiv.appendChild(iLink);
+                iDiv.appendChild(create('div', 'result-snippet', snipEl ? snipEl.textContent.trim() : '')); res.appendChild(iDiv);
+              }
+            }
+          });
+          if(!found) { ld.textContent = 'Пусто.'; ld.style.display = 'block'; }
+        } catch(e) { ld.textContent = 'Ошибка шлюза.'; ld.style.display = 'block'; }
       }
-
-      goBtn.addEventListener('click', doSearch);
-      q.addEventListener('keydown', function(e) { if(e.key === 'Enter') { e.preventDefault(); doSearch(); } });
+      goBtn.addEventListener('click', doSearch); q.addEventListener('keydown', function(e) { if(e.key === 'Enter') { e.preventDefault(); doSearch(); } });
       document.getElementById('bc').addEventListener('click', function() { ov.style.display = 'none'; });
       document.getElementById('bs').addEventListener('click', function() {
         const n = bn.value.trim(), u = bu.value.trim(); if (!n || !u) return;
-        const l = getB(); l.push({ name: n, url: u.match(/^https?:\/\//i) ? u : 'https://' + u });
-        localStorage.setItem('wn_b', JSON.stringify(l)); ov.style.display = 'none'; render();
+        const l = getB(); l.push({ name: n, url: u.match(/^https?:\/\//i) ? u : 'https://' + u }); localStorage.setItem('wn_b', JSON.stringify(l)); ov.style.display = 'none'; render();
       });
-      ov.addEventListener('click', function(e) { if(e.target === ov) ov.style.display = 'none'; });
-      render();
+      ov.addEventListener('click', function(e) { if(e.target === ov) ov.style.display = 'none'; }); render();
     })();
   </script>
 </body>
