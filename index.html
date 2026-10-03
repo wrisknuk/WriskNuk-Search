@@ -9,15 +9,12 @@
     * { box-sizing: border-box; }
     body { margin: 0; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; font-family: Arial, sans-serif; color: var(--text); background: #fff; overflow-x: hidden; }
     .container { width: min(100%, 600px); margin: auto; text-align: center; }
+    .container.top { margin-top: 10px; margin-bottom: 12px; }
     .logo { margin-bottom: 24px; font-size: clamp(32px, 8vw, 48px); font-weight: 700; letter-spacing: -1.5px; user-select: none; }
     .logo span { color: var(--accent); }
-    
-    /* Сверхлегкая базовая HTML-форма для нищенских систем */
-    .search-form { width: 100%; margin: 0; padding: 0; }
-    .search-box { display: flex; align-items: center; width: 100%; min-height: 48px; padding: 5px 10px 5px 18px; border: 1px solid var(--border); border-radius: 28px; box-shadow: 0 1px 6px rgba(32,33,36,0.15); background: #fff; }
+    .search-box { display: flex; align-items: center; width: 100%; min-height: 48px; padding: 5px 10px 5px 18px; border: 1px solid var(--border); border-radius: 28px; box-shadow: 0 1px 6px rgba(32,33,36,0.15); }
     .search-input { width: 100%; padding: 8px 0; border: 0; outline: 0; font-size: 16px; color: var(--text); background: transparent; }
     .search-arrow-btn { width: 38px; height: 38px; border: 0; border-radius: 50%; background: transparent; color: var(--accent); font-size: 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    
     .bookmarks-container { margin-top: 32px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; }
     .bookmark-card { position: relative; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--text); padding: 8px; border-radius: 8px; }
     .bookmark-card:hover { background: #f1f3f4; }
@@ -36,6 +33,13 @@
     .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
     .modal-btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; cursor: pointer; background: #fff; }
     .modal-btn.confirm { background: var(--accent); color: #fff; border-color: var(--accent); }
+    
+    /* Тактический маскировочный контейнер результатов */
+    .results-wrapper { width: min(100%, 650px); display: none; margin-top: 10px; overflow: hidden; border-radius: 12px; border: 1px solid var(--border); background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,0.05); }
+    
+    /* Срезаем чужой логотип и поисковую строку за счет отрицательного марджина сверху */
+    .mask-frame { width: 100%; height: 80vh; border: 0; margin-top: -65px; }
+    
     .footer { position: relative; margin-top: auto; padding-top: 40px; color: var(--muted); font-size: 11px; text-align: center; }
     @media (max-width: 480px) { .bookmarks-container { grid-template-columns: repeat(3, 1fr); gap: 8px; } }
   </style>
@@ -43,17 +47,14 @@
 <body>
   <main class="container" id="box">
     <div class="logo">WriskNuk <span>Search</span></div>
-    
-    <!-- Нативный GET-запрос на легковесный безскриптовый DuckDuckGo Lite -->
-    <form class="search-form" action="https://duckduckgo.com" method="GET" target="_blank">
-      <div class="search-box">
-        <input class="search-input" type="search" name="q" id="q" placeholder="Введите поисковый запрос" autocomplete="off" autofocus required>
-        <button class="search-arrow-btn" type="submit">➔</button>
-      </div>
-    </form>
-    
+    <div class="search-box">
+      <input class="search-input" type="search" id="q" placeholder="Введите поисковый запрос" autocomplete="off" autofocus>
+      <button class="search-arrow-btn" type="button" id="go-btn">➔</button>
+    </div>
     <div class="bookmarks-container" id="grid"></div>
   </main>
+  
+  <section class="results-wrapper" id="res"></section>
   
   <div class="overlay" id="ov">
     <div class="modal">
@@ -70,6 +71,7 @@
     (function () {
       var def = [{ name: 'GitHub', url: 'https://github.com' }, { name: 'Yandex', url: 'https://yandex.ru' }, { name: 'YouTube', url: 'https://youtube.com' }];
       var grid = document.getElementById('grid'), ov = document.getElementById('ov'), bn = document.getElementById('bn'), bu = document.getElementById('bu');
+      var q = document.getElementById('q'), box = document.getElementById('box'), res = document.getElementById('res'), goBtn = document.getElementById('go-btn');
       
       function getB() { try { return JSON.parse(localStorage.getItem('wn_b')) || def; } catch(e) { return def; } }
       function create(t, c, x) { var n = document.createElement(t); if(c) n.className = c; if(x) n.textContent = x; return n; }
@@ -87,6 +89,26 @@
         add.addEventListener('click', function() { bn.value = ''; bu.value = 'https://'; ov.style.display = 'flex'; bn.focus(); }); grid.appendChild(add);
       }
 
+      function doSearch() {
+        var txt = q.value.trim(); if(!txt) return;
+        
+        grid.style.display = 'none';
+        box.classList.add('top');
+        res.innerHTML = '';
+        
+        // Используем легкую мобильную поисковую выдачу Google, которая стабильно пускает в iframe
+        var targetUrl = 'https://google.com' + encodeURIComponent(txt) + '&ebc=1&output=embed';
+        
+        var frame = create('iframe');
+        frame.className = 'mask-frame';
+        frame.src = targetUrl;
+        
+        res.appendChild(frame);
+        res.style.display = 'block';
+      }
+
+      goBtn.addEventListener('click', doSearch); 
+      q.addEventListener('keydown', function(e) { if(e.key === 'Enter') { e.preventDefault(); doSearch(); } });
       document.getElementById('bc').addEventListener('click', function() { ov.style.display = 'none'; });
       document.getElementById('bs').addEventListener('click', function() {
         var n = bn.value.trim(), u = bu.value.trim(); if (!n || !u) return;
