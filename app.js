@@ -16,11 +16,7 @@
   var goBtn = document.getElementById('go-btn');
   
   function getB() {
-    try {
-      return JSON.parse(localStorage.getItem('wn_b')) || def;
-    } catch(e) {
-      return def;
-    }
+    try { return JSON.parse(localStorage.getItem('wn_b')) || def; } catch(e) { return def; }
   }
   
   function create(t, c, x) {
@@ -39,10 +35,8 @@
       var del = create('button', 'bookmark-delete', '×');
       del.type = 'button';
       del.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var l = getB();
-        l.splice(i, 1);
+        e.preventDefault(); e.stopPropagation();
+        var l = getB(); l.splice(i, 1);
         localStorage.setItem('wn_b', JSON.stringify(l));
         render();
       });
@@ -57,12 +51,37 @@
     add.appendChild(create('div', 'bookmark-icon', '+'));
     add.appendChild(create('div', 'bookmark-title', 'Добавить'));
     add.addEventListener('click', function() {
-      bn.value = '';
-      bu.value = 'https://';
-      ov.style.display = 'flex';
-      bn.focus();
+      bn.value = ''; bu.value = 'https://'; ov.style.display = 'flex'; bn.focus();
     });
     grid.appendChild(add);
+  }
+
+  // Защищенная функция отправки запроса с перебором упавших прокси
+  async function fetchWithFallback(targetUrl) {
+    // Пул бесплатных CORS-шлюзов для бесперебойной работы
+    var proxies = [
+      function(url) { return 'https://api.allorigins.win/get?url=' + encodeURIComponent(url); },
+      function(url) { return 'https://corsproxy.io/?' + encodeURIComponent(url); },
+      function(url) { return 'https://freeboard.io' + url; }
+    ];
+
+    for (var i = 0; i < proxies.length; i++) {
+      try {
+        var proxyUrl = proxies[i](targetUrl);
+        var r = await fetch(proxyUrl);
+        if (!r.ok) continue; // Если этот шлюз выдал 502/504, идем к следующему
+        
+        var json = await r.json();
+        // Приводим ответы разных прокси к единому виду (тексту HTML)
+        var htmlContent = json.contents || json;
+        if (htmlContent && typeof htmlContent === 'string' && htmlContent.indexOf('class="result') !== -1) {
+          return htmlContent; // Нашли рабочий шлюз с валидным ответом от DDG
+        }
+      } catch (err) {
+        // Текущий прокси лежит, скрипт молча переходит на резервный канал
+      }
+    }
+    throw new Error('All proxies failed');
   }
 
   async function doSearch() {
@@ -77,14 +96,10 @@
     
     try {
       var ddgTarget = 'https://duckduckgo.com' + encodeURIComponent(txt);
-      var r = await fetch('https://allorigins.win' + encodeURIComponent(ddgTarget));
-      
-      if (!r.ok) throw new Error();
-      var json = await r.json(); 
-      if (!json || !json.contents) throw new Error();
+      var rawHtml = await fetchWithFallback(ddgTarget);
 
       var parser = new DOMParser(); 
-      var doc = parser.parseFromString(json.contents, "text/html");
+      var doc = parser.parseFromString(rawHtml, "text/html");
       var items = doc.querySelectorAll('.result'); 
       
       ld.style.display = 'none';
@@ -131,32 +146,23 @@
         ld.style.display = 'block';
       }
     } catch(e) {
-      ld.textContent = 'Ошибка шлюза.';
+      ld.textContent = 'Ошибка всех доступных шлюзов.';
       ld.style.display = 'block';
     }
   }
 
   goBtn.addEventListener('click', doSearch); 
   q.addEventListener('keydown', function(e) {
-    if(e.key === 'Enter') {
-      e.preventDefault();
-      doSearch();
-    }
+    if(e.key === 'Enter') { e.preventDefault(); doSearch(); }
   });
   
-  document.getElementById('bc').addEventListener('click', function() {
-    ov.style.display = 'none';
-  });
-  
+  document.getElementById('bc').addEventListener('click', function() { ov.style.display = 'none'; });
   document.getElementById('bs').addEventListener('click', function() {
-    var n = bn.value.trim();
-    var u = bu.value.trim();
-    if (!n || !u) return;
+    var n = bn.value.trim(); var u = bu.value.trim(); if (!n || !u) return;
     var l = getB();
     l.push({ name: n, url: u.match(/^https?:\/\//i) ? u : 'https://' + u });
     localStorage.setItem('wn_b', JSON.stringify(l));
-    ov.style.display = 'none';
-    render();
+    ov.style.display = 'none'; render();
   });
   
   ov.addEventListener('click', function(e) {
