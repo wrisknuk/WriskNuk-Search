@@ -1,30 +1,71 @@
 <!DOCTYPE html>
-<html lang=ru>
+<html lang="ru">
 <head>
-<meta charset=utf-8>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<title>WriskNuk Search</title>
-<style>
-  body { font: 20px monospace; max-width: 600px; margin: 0 auto; padding: 20px; background: #fff; color: #000; }
-  h1 { font-size: 32px; margin: 0 0 20px; }
-  h1 b { color: #c00; }
-  form { display: flex; gap: 10px; }
-  input[type=text] { flex-grow: 1; padding: 12px; font: 20px monospace; border: 2px solid #000; background: #fff; color: #000; }
-  input[type=submit] { padding: 12px 20px; font: 20px monospace; font-weight: 700; border: 2px solid #000; background: #eee; color: #000; }
-  p.note { margin-top: 20px; font-size: 14px; color: #666; }
-</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WriskNuk Search</title>
+    <style>
+        body {
+            font: 20px monospace;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 24px;
+            background: #fff;
+            color: #000;
+        }
+        h1 {
+            font-size: 32px;
+            margin: 0 0 24px;
+        }
+        h1 b {
+            color: #c00;
+        }
+        form {
+            display: flex;
+            gap: 12px;
+        }
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 12px;
+            font: inherit;
+            border: 2px solid #000;
+            background: #fff;
+            color: #000;
+            outline: none;
+        }
+        input[type="text"]:focus {
+            border-color: #c00;
+        }
+        input[type="submit"] {
+            padding: 12px 20px;
+            font: inherit;
+            font-weight: 700;
+            border: 2px solid #000;
+            background: #eee;
+            color: #000;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background: #ddd;
+        }
+        .note {
+            margin-top: 24px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
-  <h1>WriskNuk<b>Search</b></h1>
-  <!-- ГЛАВНОЕ ИЗМЕНЕНИЕ: форма сама уходит на DDG Lite -->
-  <form action="https://lite.duckduckgo.com/lite/" method="get">
-    <input type="text" name="q" placeholder="Введи запрос..." autofocus>
-    <input type="submit" value="&gt;">
-  </form>
-  <p class="note">
-   
-<br>
+    <h1>WriskNuk<b>Search</b></h1>
 
-  </p>
+    <!-- Форма отправляет запрос в DuckDuckGo Lite -->
+    <form action="https://lite.duckduckgo.com/lite/" method="get">
+        <input type="text" name="q" placeholder="Введи запрос…" autofocus aria-label="Поисковый запрос">
+        <button type="submit">›</button>
+    </form>
+
+    <p class="note">
+        Лёгкий поиск через DuckDuckGo Lite — без трекинга и лишних скриптов.
+    </p>
 </body>
 </html>
